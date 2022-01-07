@@ -34,7 +34,24 @@ class OrderManager:
 
         self.volume24 = settings.VOLUME24
         self.first = True
-        self.reset()
+        self.start_time = datetime.datetime.utcnow()
+        
+        current_volume_24h = self.exchange.get_24h_volume()
+        constant = current_volume_24h / 24
+        self.DEFAULT_TRADE_AMOUNT = ((settings.VOLUME24 - current_volume_24h)* settings.TIME_DEALY_FOR_CONTINUOUS_TRADE / (settings.DEFAULT_TRADE_TIME * 60)) - constant # volume per time_delay_for_continuous_trade mins
+        print(self.DEFAULT_TRADE_AMOUNT)
+        logging.info("Placing orders with amount %f per %f minutes for %f hours" % (self.DEFAULT_TRADE_AMOUNT, settings.TIME_DEALY_FOR_CONTINUOUS_TRADE, settings.DEFAULT_TRADE_TIME))
+        
+        logging.info("Total liquidity will necessesary(nearly): %f" % ((self.DEFAULT_TRADE_AMOUNT*(settings.DEFAULT_TRADE_TIME * 60 / settings.TIME_DEALY_FOR_CONTINUOUS_TRADE))*self.exchange.get_crypto_price()))
+        logging.info("Position in CTS: %s" % str(self.exchange.get_position()))
+        var = input("Input *Yes* to continue: ")
+        if var == "Yes":
+            self.first = False
+            pass 
+        else:
+            self.exit()
+
+        
 
     def reset(self):
         self.exchange.cancel_all_orders()
@@ -49,6 +66,7 @@ class OrderManager:
         self.running_qty = float(self.exchange.get_delta())
         logging.info("current 24h Volume: %f", self.exchange.get_24h_volume())
         logging.info("Targeted 24h Volume: %f" % settings.VOLUME24)
+        logging.info("Targeted time to reach Volume: %f", settings.DEFAULT_TRADE_TIME)
 
         logging.info("Delta : %s" % str(self.exchange.get_delta()))
         logging.info("Position in CTS: %s" % str(self.exchange.get_position()))
@@ -107,40 +125,18 @@ class OrderManager:
         if settings.VOLUME24 >= current_volume_24h or settings.TYPE == 'DEFAULT_AMOUNT':
             print("Current volume is less than target volume..")
             if settings.CONTINUOUS_TRADE and not settings.TYPE == 'DEFAULT_AMOUNT':
-                # it will buy little bit amount of crypto as time goes
-                h = datetime.datetime.utcnow().hour
-                m = datetime.datetime.utcnow().minute 
-                s = datetime.datetime.utcnow().second
-                remaining_time = (24.00 - (h + m/60 + s/3600)) # in hour
-                
-                DEFAULT_TRADE_AMOUNT = ((settings.VOLUME24-current_volume_24h)*settings.TIME_DEALY_FOR_CONTINUOUS_TRADE) / (remaining_time * 60) # volume per time_delay_for_continuous_trade mins
-                
+    
                 index = 2 # 2 for buying
-                buy_orders =  self.prepare_continuous_order(index, amount=DEFAULT_TRADE_AMOUNT)
-                logging.info("Placing orders with amount %f per %f minutes" % (DEFAULT_TRADE_AMOUNT, settings.TIME_DEALY_FOR_CONTINUOUS_TRADE))
-                if self.first == True:
-                    logging.info("Total liquidity will necessesary(nearly): %f" % ((settings.VOLUME24 - current_volume_24h)*self.recent_price))
-                    var = input("Input *Yes* to continue: ")
-                    if var == "Yes":
-                        self.first = False
-                        return self.converge_orders(buy_orders, None)  
-
-                else:
-                    return self.converge_orders(buy_orders, None)
+                buy_orders =  self.prepare_continuous_order(index, amount=self.DEFAULT_TRADE_AMOUNT)
+        
+                return self.converge_orders(buy_orders, None)
+                
             else:
                 index = 2
             
                 buy_orders =  self.prepare_continuous_order(index, amount=settings.DEFAULT_TRADE_AMOUNT)
                 logging.info("Placing orders with amount %f per %f minutes" % (settings.DEFAULT_TRADE_AMOUNT, settings.TIME_DEALY_FOR_CONTINUOUS_TRADE))
-                if self.first == True:
-                    logging.info("Total liquidity will necessesary(nearly): %f" % ((settings.VOLUME24 - current_volume_24h)*self.recent_price))
-                    var = input("Input *Yes* to continue: ")
-                    if var == "Yes":
-                        self.first = False
-                        return self.converge_orders(buy_orders, None)  
-
-                else:
-                    return self.converge_orders(buy_orders, None)
+                return self.converge_orders(buy_orders, None)
 
 
 
@@ -337,6 +333,7 @@ class OrderManager:
             self.check_file_change()
             
             # sleep for LOOP INTERVAL seconds
+            logging.info("Bot will sleep for %f minutes" % (settings.TIME_DEALY_FOR_CONTINUOUS_TRADE))
             sleep(settings.TIME_DEALY_FOR_CONTINUOUS_TRADE)
 
             # This will restart on very short downtime, but if it's longer,
