@@ -171,9 +171,9 @@ class Hotbit():
     #     return response.json()
     
 
-    def all_tiker(self):
-        response = requests.get(ALLTICKER, headers=HEADERS)
-        return response.json()
+    # def all_tiker(self):
+    #     response = requests.get(ALLTICKER, headers=HEADERS)
+    #     return response.json()
 
     #############
     ## ACCOUNT ##
@@ -188,9 +188,6 @@ class Hotbit():
             else:
                 return fn(self, *args, **kwargs)
         return wrapped
-    
-    def get_account_status(self):
-        pass
     
     @authentication_required
     def get_balance_history(self, business=None, start_time=0, end_time=int(round(get_epoch_now(), 0)), offset=0, limit=1000, asset=settings.ASSET):
@@ -226,8 +223,8 @@ class Hotbit():
         response = requests.post(BALANCE_QUERY, data=parameter, headers=HEADERS)
         return response.json()
 
-    def check_market_open(self):
-        resopose = requests.get()
+    # def check_market_open(self):
+    #     resopose = requests.get()
     
     ###########
     ## ORDER ##
@@ -460,9 +457,9 @@ class Hotbit():
         response = requests.post(ORDER_FINISHED_DETAIL, data=params)
         return response.json()
         
-    def order_depth(self, market=settings.MARKET, limit=100, interval='1e-8'):
-        response = requests.get("https://api.hotbit.io/api/v1/order.depth?market={}&limit={}&interval={}".format(market, limit, interval))
-        return response.json()
+    # def order_depth(self, market=settings.MARKET, limit=100, interval='1e-8'):
+    #     response = requests.get("https://api.hotbit.io/api/v1/order.depth?market={}&limit={}&interval={}".format(market, limit, interval))
+    #     return response.json()
     
     @authentication_required
     def pending_orders(self,  market=None, offset=settings.OFFSET, limit=settings.LIMIT):

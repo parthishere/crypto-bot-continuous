@@ -26,9 +26,6 @@ class ExchangeInterface():
             symbol = self.symbol
         
         return float(self.get_position().get(symbol).get('available'))
-    
-    def get_instrument(self):
-        pass
 
 
     def get_recent_order_bids(self):
@@ -38,19 +35,19 @@ class ExchangeInterface():
         return self.hotbit.get_recent_order_sells()
     
     
-    def get_highest_buy(self):
-        buys = [o for o in self.get_recent_order_bids()['result']['orders']]  #2 for buy
-        if not len(buys):
-            return -2**32
-        highest_buy = float(max(buys or [], key=lambda o: float(o['price']))['price'])
-        return highest_buy if highest_buy else -2**32
+    # def get_highest_buy(self):
+    #     buys = [o for o in self.get_recent_order_bids()['result']['orders']]  #2 for buy
+    #     if not len(buys):
+    #         return -2**32
+    #     highest_buy = float(max(buys or [], key=lambda o: float(o['price']))['price'])
+    #     return highest_buy if highest_buy else -2**32
 
-    def get_lowest_sell(self):
-        sells = [o for o in self.get_recent_order_sells()['result']['orders']]    #1 for sell
-        if not len(sells):
-            return 2**32
-        lowest_sell = float(min(sells or [], key=lambda o: float(o['price']))['price'])
-        return lowest_sell if lowest_sell else 2**32  # ought to be enough for anyone
+    # def get_lowest_sell(self):
+    #     sells = [o for o in self.get_recent_order_sells()['result']['orders']]    #1 for sell
+    #     if not len(sells):
+    #         return 2**32
+    #     lowest_sell = float(min(sells or [], key=lambda o: float(o['price']))['price'])
+    #     return lowest_sell if lowest_sell else 2**32  # ought to be enough for anyone
 
     def get_margin(self):
         return self.hotbit.get_balance_query()

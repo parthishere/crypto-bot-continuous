@@ -28,9 +28,6 @@ class OrderManager:
 
         self.starting_qty = float(self.exchange.get_delta())
         self.running_qty = float(self.starting_qty)
-        
-        self.get_lowest_sell = self.exchange.get_lowest_sell()
-        self.get_highest_buy = self.exchange.get_highest_buy()
 
         self.volume24 = settings.VOLUME24
         self.first = True
@@ -96,9 +93,9 @@ class OrderManager:
         print(prices)
         return prices
 
-    ###
-    # Orders
-    ###
+    ##########
+    # Orders #
+    ##########
 
     def place_orders(self):
         """Create order items for use in convergence."""
@@ -251,9 +248,9 @@ class OrderManager:
                 self.exchange.cancel_bulk_orders(to_cancel)
 
 
-    ###
-    # Position Limits
-    ###
+    ###################
+    # Position Limits #
+    ###################
 
     def short_position_limit_exceeded(self):
         """Returns True if the short position limit is exceeded"""
@@ -275,16 +272,14 @@ class OrderManager:
             return True
         return False
     
-    def check_day_is_changed(self):
-        initial_time = self
+        
 
-    ###
-    # Sanity
-    ##
+    ##########
+    # Sanity #
+    ##########
 
     def perform_check(self):
         """Perform checks before placing orders."""
-
 
         if self.long_position_limit_exceeded():
             logging.warning("Long delta limit exceeded")
@@ -301,6 +296,10 @@ class OrderManager:
         if self.exchange.get_pending_orders().get('result').get('CTSUSDT').get('records') is not None:
             if len(self.exchange.get_pending_orders().get('result').get('CTSUSDT').get('records')) > settings.MAX_PENDING_ORDERS:
                 logging.warning("Pending Order limit exceeded")
+        
+        if datetime.datetime.utcnow() - self.start_time >= datetime.timedelta(hours=settings.DEFAULT_TRADE_TIME):
+            logging.warning("Time limit reached exiting....")
+            self.exit()
 
     ###########
     # Running #
